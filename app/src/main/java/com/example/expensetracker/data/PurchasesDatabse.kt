@@ -9,7 +9,7 @@ import androidx.room.RoomDatabase
 The actual database class with single instance
  */
 
-@Database(entities = [Purchase::class], version = 1, exportSchema = false)
+@Database(entities = [Purchase::class], version = 3, exportSchema = false)
 abstract class PurchasesDatabse : RoomDatabase() {
 
 abstract fun purchaseDao(): PurchaseDao

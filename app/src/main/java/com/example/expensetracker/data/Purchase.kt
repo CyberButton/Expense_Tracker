@@ -2,7 +2,7 @@ package com.example.expensetracker.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.util.Date
+
 
 
 /*
@@ -17,6 +17,6 @@ data class Purchase (
     val id: Int = 0,
     val name: String,
     val price: Int,
-    val date: Int,
-    val time: Long
+    val date: String,
+    val time: String
     )

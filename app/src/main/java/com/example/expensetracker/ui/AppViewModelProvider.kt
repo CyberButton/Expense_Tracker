@@ -24,7 +24,6 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.expensetracker.InventoryApplication
 import com.example.expensetracker.ui.home.HomeViewModel
-import com.example.expensetracker.ui.item.ItemDetailsViewModel
 import com.example.expensetracker.ui.item.ItemEditViewModel
 import com.example.expensetracker.ui.item.ItemEntryViewModel
 
@@ -43,14 +42,6 @@ object AppViewModelProvider {
         // Initializer for ItemEntryViewModel
         initializer {
             ItemEntryViewModel(inventoryApplication().container.purchaseRepo)
-        }
-
-        // Initializer for ItemDetailsViewModel
-        initializer {
-            ItemDetailsViewModel(
-                this.createSavedStateHandle(),
-                inventoryApplication().container.purchaseRepo
-            )
         }
 
         // Initializer for HomeViewModel

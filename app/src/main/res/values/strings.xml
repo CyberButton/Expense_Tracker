@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Limit for today:</string>
+    <string name="app_name">Expense Tracker</string>
     <string name="attention">Attention</string>
     <string name="back_button">Back</string>
     <string name="delete">Delete</string>

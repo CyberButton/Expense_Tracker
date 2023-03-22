@@ -1,21 +1,19 @@
-
-
 package com.example.expensetracker.ui.home
 
-import android.graphics.drawable.shapes.Shape
 import androidx.annotation.StringRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -25,14 +23,21 @@ import com.example.expensetracker.R
 import com.example.expensetracker.data.Purchase
 import com.example.expensetracker.ui.AppViewModelProvider
 import com.example.expensetracker.ui.navigation.NavigationDestination
+import com.vanpra.composematerialdialogs.MaterialDialog
+import com.vanpra.composematerialdialogs.datetime.date.datepicker
+import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import java.text.NumberFormat
-import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 object HomeDestination : NavigationDestination {
     override val route = "home"
     override val titleRes = R.string.app_name
 }
+
+private var currentDate by mutableStateOf(LocalDate.now())
 
 /**
  * Entry route for Home screen
@@ -45,27 +50,66 @@ fun HomeScreen(
     viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val homeUiState by viewModel.homeUiState.collectAsState()
+    val dateDialogState = rememberMaterialDialogState()
+    val totalSpent by remember {
+        mutableStateOf({
+            var sum = 0
+            for (items in homeUiState.itemList) {
+                if (LocalDate.parse(items.date) == currentDate) {
+                    sum += items.price
+                }
+            }
+            sum
+        })
+    }
     Scaffold(
         topBar = {
             InventoryTopAppBar(
-                title = stringResource(HomeDestination.titleRes),
+                title = "Total spent today: " + NumberFormat.getCurrencyInstance(Locale.getDefault())
+                    .format(totalSpent.invoke()),
                 canNavigateBack = false
             )
         },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = navigateToItemEntry,
-                text = { Text(text = "Add Purchase") },
-                icon = {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(id = R.string.item_entry_title),
-                        tint = MaterialTheme.colors.onPrimary
-                    )
-                },
-                modifier = Modifier.navigationBarsPadding()
-            )
-        },
+        bottomBar = {
+            BottomAppBar(backgroundColor = MaterialTheme.colors.surface) {
+                Row(modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = { dateDialogState.show() },
+                        colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondary),
+                        shape = RoundedCornerShape(15.dp),
+                        modifier = Modifier
+                            .padding(horizontal = 20.dp)
+                            .padding(bottom = 5.dp),
+                        elevation = ButtonDefaults.elevation(7.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.calendar),
+                            contentDescription = "calendar"
+                        )
+                    }
+                    Spacer(modifier = modifier.padding(horizontal = 20.dp))
+                    if (currentDate == LocalDate.now()) {
+                        ExtendedFloatingActionButton(
+                            onClick = navigateToItemEntry,
+                            text = { Text(text = "Add Purchase") },
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    //painter = painterResource(id = R.drawable.calendar),
+                                    contentDescription = stringResource(id = R.string.item_entry_title),
+                                    tint = MaterialTheme.colors.onSecondary
+                                )
+                            },
+                            shape = RoundedCornerShape(15.dp),
+                            modifier = Modifier
+                                .navigationBarsPadding()
+                                .padding(horizontal = 20.dp)
+
+                        )
+                    }
+                }
+            }
+        }
     ) { innerPadding ->
         HomeBody(
             itemList = homeUiState.itemList,
@@ -73,7 +117,26 @@ fun HomeScreen(
             modifier = modifier.padding(innerPadding)
         )
     }
+    MaterialDialog(
+        dialogState = dateDialogState,
+        buttons = {
+            positiveButton(text = "Ok") {
+            }
+            negativeButton(text = "Cancel")
+        }
+    ) {
+        datepicker(
+            initialDate = currentDate,
+            title = "Pick a date",
+            allowedDateValidator = {
+                it <= LocalDate.now()
+            }
+        ) {
+            currentDate = it
+        }
+    }
 }
+
 
 @Composable
 private fun HomeBody(
@@ -106,10 +169,12 @@ private fun InventoryList(
     onItemClick: (Purchase) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    LazyColumn(modifier = modifier ) {
         items(items = itemList, key = { it.id }) { item ->
-            InventoryItem(item = item, onItemClick = onItemClick)
-            Divider()
+            if (currentDate == LocalDate.parse(item.date)) {
+                InventoryItem(item = item, onItemClick = onItemClick)
+                Divider()
+            }
         }
     }
 }
@@ -147,7 +212,11 @@ private fun InventoryItem(
             text = NumberFormat.getCurrencyInstance(Locale.getDefault()).format(item.price),
             modifier = Modifier.weight(1.0f)
         )
-        Text(text = SimpleDateFormat("HH:mm", Locale.ENGLISH).format(item.time), modifier = Modifier.weight(1.0f))
+        Text(
+            text = LocalTime.parse(item.time, DateTimeFormatter.ISO_TIME).format(
+                DateTimeFormatter.ofPattern("HH:mm")
+            ), modifier = Modifier.weight(1.0f)
+        )
 
     }
 }
@@ -161,17 +230,3 @@ private val headerList = listOf(
 
 )
 
-//@Preview(showBackground = true)
-//@Composable
-//fun HomeScreenRoutePreview() {
-//    InventoryTheme {
-//        HomeBody(
-//            listOf(
-//                Item(1, "Game", 100.0, 20),
-//                Item(2, "Pen", 200.0, 30),
-//                Item(3, "TV", 300.0, 50)
-//            ),
-//            onItemClick = {}
-//        )
-//    }
-//}

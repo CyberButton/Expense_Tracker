@@ -1,6 +1,5 @@
-
-
 package com.example.expensetracker.ui.home
+
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,15 +10,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
+
 /**
  * View Model to retrieve all items in the Room database.
  */
 class HomeViewModel(itemsRepository: PurchaseRepo) : ViewModel() {
+    //var currentDate by mutableStateOf(LocalDate.now())
 
-    /**
-     * Holds home ui state. The list of items are retrieved from [ItemsRepository] and mapped to
-     * [HomeUiState]
-     */
     val homeUiState: StateFlow<HomeUiState> =
         itemsRepository.getAllPurchasesStream().map { HomeUiState(it) }
             .stateIn(

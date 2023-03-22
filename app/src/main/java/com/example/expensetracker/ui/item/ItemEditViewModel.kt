@@ -1,4 +1,3 @@
-
 package com.example.expensetracker.ui.item
 
 import androidx.compose.runtime.getValue
@@ -8,17 +7,31 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.expensetracker.data.PurchaseRepo
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-/**
- * ViewModel to retrieve and update an item from the [ItemsRepository]'s data source.
- */
+
 class ItemEditViewModel(
     savedStateHandle: SavedStateHandle,
     private val itemsRepository: PurchaseRepo
 ) : ViewModel() {
+
+    private val itemIdForEdit: Int = checkNotNull(savedStateHandle[ItemEditDestination.itemIdArg])
+
+    /**
+     * Holds the item details ui state. The data is retrieved from [PurchaseRepo] and mapped to
+     * the UI state.
+     */
+    val uiState: StateFlow<ItemEditUiState> =
+        itemsRepository.getPurchaseStream(itemIdForEdit)
+            .filterNotNull()
+            .map {
+                ItemEditUiState(outOfStock = it.price <= 0, itemDetails = it.toItemDetails())
+            }.stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS_FOR_EDIT),
+                initialValue = ItemEditUiState()
+            )
 
     /**
      * Holds current item ui state
@@ -37,9 +50,7 @@ class ItemEditViewModel(
         }
     }
 
-    /**
-     * Update the item in the [ItemsRepository]'s data source
-     */
+
     suspend fun updateItem() {
         if (validateInput(itemUiState.itemDetails)) {
             itemsRepository.updatePurchase(itemUiState.itemDetails.toItem())
@@ -55,9 +66,25 @@ class ItemEditViewModel(
             ItemUiState(itemDetails = itemDetails, isEntryValid = validateInput(itemDetails))
     }
 
+    suspend fun deleteItem() {
+        itemsRepository.deletePurchase(uiState.value.itemDetails.toItem())
+    }
+
     private fun validateInput(uiState: ItemDetails = itemUiState.itemDetails): Boolean {
         return with(uiState) {
-            name.isNotBlank() && price.isNotBlank() && quantity.isNotBlank()
+            name.isNotBlank() && price.isNotBlank() //&& quantity.isNotBlank()
         }
     }
+
+    companion object {
+        private const val TIMEOUT_MILLIS_FOR_EDIT = 5_000L
+    }
 }
+
+/**
+ * UI state for ItemDetailsScreen
+ */
+data class ItemEditUiState(
+    val outOfStock: Boolean = true,
+    val itemDetails: ItemDetails = ItemDetails()
+)

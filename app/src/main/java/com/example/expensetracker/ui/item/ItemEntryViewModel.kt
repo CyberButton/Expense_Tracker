@@ -1,5 +1,3 @@
-
-
 package com.example.expensetracker.ui.item
 
 import androidx.compose.runtime.getValue
@@ -8,6 +6,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.expensetracker.data.Purchase
 import com.example.expensetracker.data.PurchaseRepo
+import java.time.LocalDate
+import java.time.LocalTime
 
 /**
  * View Model to validate and insert items in the Room database.
@@ -25,13 +25,12 @@ class ItemEntryViewModel(private val itemsRepository: PurchaseRepo) : ViewModel(
      * a validation for input values.
      */
     fun updateUiState(itemDetails: ItemDetails) {
+        //Log.d("started", "started updationg UiState")
         itemUiState =
             ItemUiState(itemDetails = itemDetails, isEntryValid = validateInput(itemDetails))
     }
 
-    /**
-     * Inserts an [Item] in the Room database
-     */
+
     suspend fun saveItem() {
         if (validateInput()) {
             itemsRepository.insertPurchase(itemUiState.itemDetails.toItem())
@@ -39,8 +38,10 @@ class ItemEntryViewModel(private val itemsRepository: PurchaseRepo) : ViewModel(
     }
 
     private fun validateInput(uiState: ItemDetails = itemUiState.itemDetails): Boolean {
+        //Log.d("started", "started valiating input")
+        //println(uiState.name.isNotBlank() && uiState.price.isNotBlank())
         return with(uiState) {
-            name.isNotBlank() && price.isNotBlank() && quantity.isNotBlank()
+            name.isNotBlank() && price.isNotBlank() //&& quantity.isNotBlank()
         }
     }
 }
@@ -57,40 +58,34 @@ data class ItemDetails(
     val id: Int = 0,
     val name: String = "",
     val price: String = "",
-    val quantity: String = "",
-    val date: Int = 0,
-    val time: Long = 0
+    //val quantity: String = "",
+    val date: LocalDate = LocalDate.now(),
+    val time: LocalTime = LocalTime.now()
 )
 
-/**
- * Extension function to convert [ItemUiState] to [Item]. If the value of [ItemUiState.price] is
- * not a valid [Double], then the price will be set to 0.0. Similarly if the value of
- * [ItemUiState] is not a valid [Int], then the quantity will be set to 0
- */
+
 fun ItemDetails.toItem(): Purchase = Purchase(
     id = id,
     name = name,
     price = price.toIntOrNull() ?: 0,
     //quantity = quantity.toIntOrNull() ?: 0
-    date = date,
-    time = time
+    date = date.toString(),
+    time = time.toString()
 )
 
-/**
- * Extension function to convert [Item] to [ItemUiState]
- */
+
 fun Purchase.toItemUiState(isEntryValid: Boolean = false): ItemUiState = ItemUiState(
     itemDetails = this.toItemDetails(),
     isEntryValid = isEntryValid
 )
 
-/**
- * Extension function to convert [Item] to [ItemDetails]
- */
+
 fun Purchase.toItemDetails(): ItemDetails = ItemDetails(
     id = id,
     name = name,
     price = price.toString(),
+    date = LocalDate.parse(date),
+    time = LocalTime.parse(time)
     //quantity = quantity.toString()
 )
 

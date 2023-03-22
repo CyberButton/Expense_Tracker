@@ -1,5 +1,3 @@
-
-
 package com.example.expensetracker.ui.navigation
 
 import androidx.compose.runtime.Composable
@@ -11,8 +9,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.expensetracker.ui.home.HomeDestination
 import com.example.expensetracker.ui.home.HomeScreen
-import com.example.expensetracker.ui.item.ItemDetailsDestination
-import com.example.expensetracker.ui.item.ItemDetailsScreen
 import com.example.expensetracker.ui.item.ItemEditDestination
 import com.example.expensetracker.ui.item.ItemEditScreen
 import com.example.expensetracker.ui.item.ItemEntryDestination
@@ -35,7 +31,8 @@ fun InventoryNavHost(
             HomeScreen(
                 navigateToItemEntry = { navController.navigate(ItemEntryDestination.route) },
                 navigateToItemUpdate = {
-                    navController.navigate("${ItemDetailsDestination.route}/${it}")
+                    navController.navigate("${ItemEditDestination.route}/$it")
+                    //navigateToEditItem(uiState.value.itemDetails.id)
                 }
             )
         }
@@ -45,17 +42,17 @@ fun InventoryNavHost(
                 onNavigateUp = { navController.navigateUp() }
             )
         }
-        composable(
-            route = ItemDetailsDestination.routeWithArgs,
-            arguments = listOf(navArgument(ItemDetailsDestination.itemIdArg) {
-                type = NavType.IntType
-            })
-        ) {
-            ItemDetailsScreen(
-                navigateToEditItem = { navController.navigate("${ItemEditDestination.route}/$it") },
-                navigateBack = { navController.navigateUp() }
-            )
-        }
+//        composable(
+//            route = ItemDetailsDestination.routeWithArgs,
+//            arguments = listOf(navArgument(ItemDetailsDestination.itemIdArg) {
+//                type = NavType.IntType
+//            })
+//        ) {
+//            ItemDetailsScreen(
+//                navigateToEditItem = { navController.navigate("${ItemEditDestination.route}/$it") },
+//                navigateBack = { navController.navigateUp() }
+//            )
+//        }
         composable(
             route = ItemEditDestination.routeWithArgs,
             arguments = listOf(navArgument(ItemEditDestination.itemIdArg) {

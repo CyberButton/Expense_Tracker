@@ -1,5 +1,3 @@
-
-
 package com.example.expensetracker.ui.item
 
 import androidx.compose.foundation.layout.Arrangement
@@ -11,8 +9,8 @@ import androidx.compose.material.Button
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -71,7 +69,7 @@ fun ItemEntryBody(
     itemUiState: ItemUiState,
     onItemValueChange: (ItemDetails) -> Unit,
     onSaveClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
@@ -79,6 +77,7 @@ fun ItemEntryBody(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(32.dp)
     ) {
+        var deleteConfirmationRequired by rememberSaveable { mutableStateOf(false) }
         ItemInputForm(itemDetails = itemUiState.itemDetails, onValueChange = onItemValueChange)
         Button(
             onClick = onSaveClick,
@@ -116,17 +115,18 @@ fun ItemInputForm(
             enabled = enabled,
             singleLine = true
         )
-        OutlinedTextField(
-            value = itemDetails.quantity,
-            onValueChange = { onValueChange(itemDetails.copy(quantity = it)) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            label = { Text("quantity is not required") },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = enabled,
-            singleLine = true
-        )
+//        OutlinedTextField(
+//            value = itemDetails.quantity,
+//            onValueChange = { onValueChange(itemDetails.copy(quantity = it)) },
+//            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+//            label = { Text("quantity is not required") },
+//            modifier = Modifier.fillMaxWidth(),
+//            enabled = enabled,
+//            singleLine = true
+//        )
     }
 }
+
 
 //@Preview(showBackground = true)
 //@Composable
